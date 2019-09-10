@@ -16,7 +16,13 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            buildConfigField "String", "BASE_URL", '"https://api.nasa.gov/planetary"'
+            buildConfigField "String", "API_KEY", '"fkEphbRmy3mBgxOBPG52y96RPc1bbcR43HVVK7Su"'
+        }
         release {
+            buildConfigField "String", "BASE_URL", '"https://api.nasa.gov/planetary"'
+            buildConfigField "String", "API_KEY", '"fkEphbRmy3mBgxOBPG52y96RPc1bbcR43HVVK7Su"'
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
