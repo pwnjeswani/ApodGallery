@@ -28,8 +28,8 @@ class LocalDataRepository {
     }
 
 
-    fun clearDb(messageHistory: ImageData) {
-        appDatabase!!.apodDao.deleteWholeDb(messageHistory)
+    fun clearDb(imageData: ImageData) {
+        appDatabase!!.apodDao.deleteWholeDb(imageData)
     }
 
     fun getAllLocalImages(): LiveData<List<ImageData>> {

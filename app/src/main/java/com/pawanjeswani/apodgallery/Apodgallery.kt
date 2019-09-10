@@ -2,7 +2,7 @@ package com.pawanjeswani.apodgallery
 
 import android.app.Application
 
-class apodgallery : Application() {
+class Apodgallery : Application() {
 
 
     override fun onCreate() {
@@ -16,9 +16,9 @@ class apodgallery : Application() {
 
     companion object {
 
-        private var app: apodgallery? = null
+        private var app: Apodgallery? = null
 
-        fun instance(): apodgallery? {
+        fun instance(): Apodgallery? {
             return app
         }
     }
