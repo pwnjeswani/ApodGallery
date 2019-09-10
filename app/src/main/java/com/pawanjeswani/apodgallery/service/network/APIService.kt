@@ -7,7 +7,7 @@ import retrofit2.http.*
 
 interface APIService {
 
-    @GET("/apod")
+    @GET("apod")
     fun getImageData(@Query("api_key") api_key:String,
                     @Query("start_date") start_date:String,
                     @Query("end_date") end_date:String
