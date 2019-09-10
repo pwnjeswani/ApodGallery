@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.ApodRequest
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
+import com.pawanjeswani.apodgallery.service.database.interfaces.DbQueryListener
 import com.pawanjeswani.apodgallery.util.NetworkUtil
 import com.pawanjeswani.apodgallery.view.adapter.ImageThumbsAdapter
 import com.pawanjeswani.apodgallery.viewmodel.ApodViewModel
@@ -40,10 +41,25 @@ class MainActivity : AppCompatActivity() {
         apodRequest.end_date = df.format(todayDate)
         apodViewModel.getRemoteImages(apodRequest).observe(this,androidx.lifecycle.Observer {
             if(it!=null && it.isNotEmpty()){
-                imageAdapter.setImages(it as ArrayList<ImageData>)
+                var revestList = it.reversed().filter { it.media_type.equals("image") }
+                saveInDb(revestList)
+                imageAdapter.setImages(revestList as ArrayList<ImageData>)
             }
         })
     }
+
+    private fun saveInDb(imgList: List<ImageData>?) {
+        var count = 0
+        for (img in imgList!!)
+        {
+            img.image_id = UUID.randomUUID().toString()
+            apodViewModel.saveImage(img, DbQueryListener {
+                count++
+            })
+        }
+        Toast.makeText(this,"added $count Elements",Toast.LENGTH_LONG).show()
+    }
+
 
     private fun setUpRecyclerview() {
         var gridLayoutManager = GridLayoutManager(this, 3)
