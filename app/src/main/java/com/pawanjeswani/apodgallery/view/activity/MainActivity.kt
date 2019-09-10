@@ -8,14 +8,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.ApodRequest
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
-import com.pawanjeswani.apodgallery.service.database.interfaces.DbQueryListener
 import com.pawanjeswani.apodgallery.util.NetworkUtil
 import com.pawanjeswani.apodgallery.view.adapter.ImageThumbsAdapter
 import com.pawanjeswani.apodgallery.viewmodel.ApodViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
 
@@ -39,8 +37,8 @@ class MainActivity : AppCompatActivity() {
         var twentyDaysBefore = getDaysAgo(20)
         apodRequest.start_date = df.format(twentyDaysBefore)
         apodRequest.end_date = df.format(todayDate)
-        apodViewModel.getRemoteImages(apodRequest).observe(this,androidx.lifecycle.Observer {
-            if(it!=null && it.isNotEmpty()){
+        apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
+            if (it != null && it.isNotEmpty()) {
                 var revestList = it.reversed().filter { it.media_type.equals("image") }
                 saveInDb(revestList)
                 imageAdapter.setImages(revestList as ArrayList<ImageData>)
@@ -50,14 +48,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveInDb(imgList: List<ImageData>?) {
         var count = 0
-        for (img in imgList!!)
-        {
-            img.image_id = UUID.randomUUID().toString()
-            apodViewModel.saveImage(img, DbQueryListener {
-                count++
-            })
+        var mutableList: MutableList<ImageData> = imgList as MutableList<ImageData>
+        for (i in 0 until mutableList.size) {
+            var image = mutableList[i]
+            image.image_id = image.date!!
+            mutableList[i] = image
+            count++
+//            apodViewModel.saveImage(img, DbQueryListener {
+//                count++
+//            })
         }
-        Toast.makeText(this,"added $count Elements",Toast.LENGTH_LONG).show()
+        apodViewModel.storeMultipleImages(mutableList)
+        Toast.makeText(this, "added $count Elements", Toast.LENGTH_LONG).show()
     }
 
 

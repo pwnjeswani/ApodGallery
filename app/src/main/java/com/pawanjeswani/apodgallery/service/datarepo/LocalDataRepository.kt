@@ -27,6 +27,15 @@ class LocalDataRepository {
         handler.post(runnable)
     }
 
+    fun insetrtMultiples(imgList:List<ImageData>){
+        val mHandlerThread = HandlerThread("Handler")
+        mHandlerThread.start()
+        val handler = Handler(mHandlerThread.looper)
+        val runnable = {
+            appDatabase!!.apodDao.insetrmultiImges(imgList)
+        }
+        handler.post(runnable)
+    }
 
     fun clearDb(imageData: ImageData) {
         appDatabase!!.apodDao.deleteWholeDb(imageData)

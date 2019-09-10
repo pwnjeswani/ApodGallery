@@ -19,6 +19,9 @@ interface ApodDao {
     @Insert(onConflict = REPLACE)
     fun insertImagedataToDb(imageData: ImageData)
 
+    @Insert(onConflict = REPLACE)
+    fun insetrmultiImges(list:List<ImageData>)
+
     @Delete
     fun deleteWholeDb(imageData: ImageData)
 

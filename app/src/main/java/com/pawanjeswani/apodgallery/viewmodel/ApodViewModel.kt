@@ -29,6 +29,9 @@ class ApodViewModel : ViewModel() {
         localDataRepository!!.insertImageToDb(imageData,listener)
     }
 
+    fun storeMultipleImages(list:List<ImageData>){
+        localDataRepository!!.insetrtMultiples(list)
+    }
     fun getLocalImages():LiveData<List<ImageData>>{
         val conversation = MutableLiveData<List<ImageData>>()
         localDataRepository!!.getAllLocalImages().observeForever {
