@@ -56,6 +56,9 @@ dependencies {
     //android arch. components dependencies
     implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
 
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
+
+
     //testing dependencies
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
