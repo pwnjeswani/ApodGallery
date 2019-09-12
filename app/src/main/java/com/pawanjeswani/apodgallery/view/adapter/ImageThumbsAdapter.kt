@@ -1,6 +1,8 @@
 package com.pawanjeswani.apodgallery.view.adapter
 
 import android.content.Context
+import android.content.Intent
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,10 +12,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
+import com.pawanjeswani.apodgallery.view.activity.ImageActivity
 
 
 class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    companion object{
+        var IMG_DATA  ="img_data"
+        var IMG_DATA_BUNDLE  ="img_data_bundle"
+    }
     private var imgList = mutableListOf<ImageData>()
     var mContext: Context? = null
 
@@ -42,7 +49,13 @@ class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         var holder = holder as SentMessageHolder
         holder.bind(imgList[position])
-
+        holder.itemView.setOnClickListener {
+            var intent = Intent(mContext,ImageActivity::class.java)
+            var bundle = Bundle()
+            bundle.putSerializable(IMG_DATA,imgList[position])
+            intent.putExtra(IMG_DATA_BUNDLE,bundle)
+            mContext!!.startActivity(intent)
+        }
     }
 
     private open inner class ReceivedMessageHolder internal constructor(itemView: View) :
