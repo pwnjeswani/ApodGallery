@@ -1,17 +1,15 @@
 package com.pawanjeswani.apodgallery.view.activity
 
 import android.os.Bundle
-import android.view.View
+import android.util.DisplayMetrics
 import android.view.ViewGroup
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.ViewModelProviders
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.ApodRequest
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
-import com.pawanjeswani.apodgallery.util.Constans.Companion.EXTRA_BOTTOM_SHEET_SLIDE_OFFSET
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATE
 import com.pawanjeswani.apodgallery.util.Constans.Companion.PageSize
@@ -22,6 +20,9 @@ import kotlinx.android.synthetic.main.activity_image.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+
+
+
 class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     ViewPagerPaginate.Callbacks {
 
@@ -30,7 +31,7 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     private var hasMore = true
     var page = 1
     private var loading = false
-
+    private var currentImagePosition = 0
     lateinit var apodViewModel: ApodViewModel
     lateinit var toolbar: ActionBar
     private var listOfImges = arrayListOf<ImageData?>()
@@ -134,7 +135,8 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     }
 
 
-    inner class ImageFragmentAdapter(fm: androidx.fragment.app.FragmentManager) : FragmentPagerAdapter(fm,BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+    inner class ImageFragmentAdapter(fm: androidx.fragment.app.FragmentManager) :
+        FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
         override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
             super.destroyItem(container, position, `object`)
@@ -170,6 +172,6 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     }
 
     override fun onPageSelected(position: Int) {
-
+        currentImagePosition = position
     }
 }

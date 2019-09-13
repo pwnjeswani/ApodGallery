@@ -1,6 +1,8 @@
 package com.pawanjeswani.apodgallery.view.activity
 
+import android.content.res.Configuration
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
@@ -39,6 +41,10 @@ class MainActivity : AppCompatActivity() {
         initScrollListener()
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        imageAdapter.notifyDataSetChanged()
+        super.onConfigurationChanged(newConfig)
+    }
     private fun setUpRecyclerview() {
         var gridLayoutManager = GridLayoutManager(this, 3)
         rv_images.layoutManager = gridLayoutManager

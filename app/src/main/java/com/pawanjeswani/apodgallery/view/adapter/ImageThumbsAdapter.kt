@@ -3,6 +3,7 @@ package com.pawanjeswani.apodgallery.view.adapter
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +19,7 @@ import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA_BUNDLE
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATE
 import com.pawanjeswani.apodgallery.view.activity.ImageActivity
-
+import com.pawanjeswani.apodgallery.view.activity.MainActivity
 
 
 class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -27,6 +28,7 @@ class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private var VIEW_TYPE_LOADING = 0
     private var imgList = mutableListOf<ImageData?>()
     var mContext: Context? = null
+    var width =0
 
 
     constructor(context: Context) {
@@ -34,7 +36,9 @@ class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-
+        val displayMetrics = DisplayMetrics()
+        (mContext as MainActivity).windowManager.defaultDisplay.getMetrics(displayMetrics)
+        width = displayMetrics.widthPixels
         return if (viewType == VIEW_TYPE_ITEM) {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.image_item, parent, false)
             ImageViewHolder(view)
@@ -83,7 +87,7 @@ class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 .applyDefaultRequestOptions(RequestOptions().error(mContext!!.resources.getDrawable(R.drawable.placeholder)).
                     placeholder(mContext!!.resources.getDrawable(R.drawable.placeholder)))
                 .load(imgData.url)
-                .apply(RequestOptions().override(400,400).centerCrop())
+                .apply(RequestOptions().override(width/3,width/3).centerCrop())
                 .into(iv_thumb)
         }
     }
