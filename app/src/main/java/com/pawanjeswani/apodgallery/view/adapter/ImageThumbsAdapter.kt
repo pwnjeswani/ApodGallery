@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
 import com.pawanjeswani.apodgallery.view.activity.ImageActivity
@@ -19,6 +20,7 @@ class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     companion object{
         var IMG_DATA  ="img_data"
+        var CURRENT_IMAGE  ="current_image"
         var IMG_DATA_BUNDLE  ="img_data_bundle"
     }
     private var imgList = mutableListOf<ImageData>()
@@ -65,6 +67,7 @@ class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
         internal fun bind(imgData: ImageData) {
             Glide.with(mContext!!)
                 .load(imgData.url)
+                .apply(RequestOptions().override(400,400).centerCrop())
                 .into(iv_thumb)
         }
     }

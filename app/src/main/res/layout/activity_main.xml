@@ -10,10 +10,10 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_images"
-        android:padding="5dp"
         android:layout_width="match_parent"
-        tools:listitem="@layout/image_item"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        tools:listitem="@layout/image_item" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
