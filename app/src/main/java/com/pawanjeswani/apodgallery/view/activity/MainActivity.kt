@@ -32,13 +32,14 @@ class MainActivity : AppCompatActivity() {
     private var loading = false
     private var listOfImges = arrayListOf<ImageData?>()
     var pageNo = 1
+    var isConnect:Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         imageAdapter = ImageThumbsAdapter(this)
         apodViewModel = ViewModelProviders.of(this).get(ApodViewModel::class.java)
-        var isConnect = NetworkUtil.isInternetAvailable(this)
+        isConnect = NetworkUtil.isInternetAvailable(this)
         setUpRecyclerview()
         fetchInitialImages()
         initScrollListener()
@@ -59,17 +60,31 @@ class MainActivity : AppCompatActivity() {
         var apodRequest = ApodRequest()
         apodRequest.start_date = GeneralUtils.dateFormatter.format(endDate)
         apodRequest.end_date = GeneralUtils.dateFormatter.format(todayDate)
-        apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
-            if (it != null && it.isNotEmpty()) {
-                var revestList = it.reversed().filter { it.media_type.equals("image") }
-                updateList(revestList)
-            }
-        })
+        if(isConnect){
+            //fetching images from Remote Source
+            apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
+                if (it != null && it.isNotEmpty()) {
+                    var revestList = it.reversed().filter { it.media_type.equals("image") }
+                    updateList(revestList)
+                }
+            })
+        }
+        else{
+            //loading saved images from Database
+            apodViewModel.getLocalImages().observe(this, androidx.lifecycle.Observer {
+                if (it != null && it.isNotEmpty()) {
+//                    var revestList = it.reversed().filter { it.media_type.equals("image") }
+                    updateList(it)
+                }
+            })
+        }
+
     }
 
     private fun updateList(revestList: List<ImageData>) {
         listOfImges.addAll(revestList  as ArrayList<ImageData?>)
-//                saveInDb(revestList)
+        if(isConnect)
+            saveInDb(revestList)
         imageAdapter.updateImagesList(listOfImges)
         pageNo++
     }
@@ -111,7 +126,6 @@ class MainActivity : AppCompatActivity() {
                 updateList(revestList)
             }
         })
-
     }
 
     private fun gotImages() {
@@ -130,9 +144,6 @@ class MainActivity : AppCompatActivity() {
             image.image_id = image.date!!
             mutableList[i] = image
             count++
-//            apodViewModel.saveImage(img, DbQueryListener {x6
-//                count++
-//            })
         }
         apodViewModel.storeMultipleImages(mutableList)
         Toast.makeText(this, "added $count Elements", Toast.LENGTH_LONG).show()

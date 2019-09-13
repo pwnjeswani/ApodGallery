@@ -25,11 +25,7 @@ class SingleImageFragment : Fragment() {
     internal var bottomSheetSlideOffset: Float = 0.toFloat()
     internal var bottomSheetState: Int = 0
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         bundle = arguments
         imgData = bundle!!.getSerializable(IMG_DATA) as ImageData

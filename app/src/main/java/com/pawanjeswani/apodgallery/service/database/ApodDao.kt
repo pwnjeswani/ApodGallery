@@ -13,7 +13,7 @@ import com.pawanjeswani.apodgallery.model.dbTable.ImageData
 @Dao
 interface ApodDao {
 
-    @Query("SELECT * from ImageData")
+    @Query("SELECT * from ImageData ORDER BY image_id DESC")
     fun getAllImages(): LiveData<List<ImageData>>
 
     @Insert(onConflict = REPLACE)

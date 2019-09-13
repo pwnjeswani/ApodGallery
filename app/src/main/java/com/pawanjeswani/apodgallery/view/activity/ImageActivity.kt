@@ -172,6 +172,5 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
 
     override fun onPageSelected(position: Int) {
         currentImagePosition = position
-        Toast.makeText(this,"selected pos $currentImagePosition",Toast.LENGTH_LONG).show()
     }
 }
