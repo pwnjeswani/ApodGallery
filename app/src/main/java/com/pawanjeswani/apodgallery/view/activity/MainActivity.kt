@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private var listOfImges = arrayListOf<ImageData?>()
     var pageNo = 1
     var isConnect: Boolean = false
+    var gotError: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,13 +64,24 @@ class MainActivity : AppCompatActivity() {
         var endDate = getDaysAgo(PageSize - 1)
         var apodRequest = ApodRequest()
         apodRequest.start_date = GeneralUtils.dateFormatter.format(endDate)
-        apodRequest.end_date = GeneralUtils.dateFormatter.format(todayDate)
+        if(!gotError){
+            apodRequest.end_date = GeneralUtils.dateFormatter.format(todayDate)
+        }
+        else{
+            apodRequest.end_date = GeneralUtils.dateFormatter.format(getDaysAgo(1))
+        }
+
         if (isConnect) {
             //fetching images from Remote Source
             apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
                 if (it != null && it.isNotEmpty()) {
                     var revestList = it.reversed().filter { it.media_type.equals("image") }
                     updateList(revestList)
+                }
+                else{
+                    //got error need to handle
+                    gotError = true
+                    fetchInitialImages()
                 }
             })
         } else {
@@ -152,7 +164,7 @@ class MainActivity : AppCompatActivity() {
             count++
         }
         apodViewModel.storeMultipleImages(mutableList)
-        Toast.makeText(this, "added $count Elements", Toast.LENGTH_LONG).show()
+//        Toast.makeText(this, "added $count Elements", Toast.LENGTH_LONG).show()
     }
 
     fun showNoNetSnakBar(){

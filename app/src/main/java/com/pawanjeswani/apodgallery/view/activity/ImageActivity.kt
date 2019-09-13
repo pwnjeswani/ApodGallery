@@ -167,7 +167,7 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     }
 
     override fun onLoadMore() {
-        Toast.makeText(this, "onLoadMore is called", Toast.LENGTH_LONG).show()
+//        Toast.makeText(this, "onLoadMore is called", Toast.LENGTH_LONG).show()
     }
 
     override fun isLoading(): Boolean = loading
