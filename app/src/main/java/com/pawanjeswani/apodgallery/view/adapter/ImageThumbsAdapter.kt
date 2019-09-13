@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
+import android.widget.ProgressBar
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -16,14 +16,17 @@ import com.pawanjeswani.apodgallery.model.dbTable.ImageData
 import com.pawanjeswani.apodgallery.view.activity.ImageActivity
 
 
+
 class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     companion object{
         var IMG_DATA  ="img_data"
         var CURRENT_IMAGE  ="current_image"
         var IMG_DATA_BUNDLE  ="img_data_bundle"
+        var VIEW_TYPE_ITEM = 1
+        var VIEW_TYPE_LOADING = 0
     }
-    private var imgList = mutableListOf<ImageData>()
+    private var imgList = mutableListOf<ImageData?>()
     var mContext: Context? = null
 
 
@@ -32,45 +35,63 @@ class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val view =
-            LayoutInflater.from(parent.context).inflate(R.layout.image_item, parent, false);
-        return SentMessageHolder(view)
+
+        return if (viewType == VIEW_TYPE_ITEM) {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.image_item, parent, false)
+            ImageViewHolder(view)
+        } else {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.loading_item, parent, false)
+            LoadingViewHodler(view)
+        }
     }
 
-    fun setImages(imageList: ArrayList<ImageData>) {
+    fun addImages(imageList: ArrayList<ImageData?>) {
         imgList.clear()
         this.imgList.addAll(imageList)
         notifyDataSetChanged()
     }
 
+    override fun getItemViewType(position: Int): Int {
+        return if (imgList[position]==null) VIEW_TYPE_LOADING else VIEW_TYPE_ITEM
+    }
 
-    override fun getItemCount(): Int {
+        override fun getItemCount(): Int {
         return imgList.count()
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        var holder = holder as SentMessageHolder
-        holder.bind(imgList[position])
-        holder.itemView.setOnClickListener {
-            var intent = Intent(mContext,ImageActivity::class.java)
-            var bundle = Bundle()
-            bundle.putSerializable(IMG_DATA,imgList[position])
-            intent.putExtra(IMG_DATA_BUNDLE,bundle)
-            mContext!!.startActivity(intent)
+        when(holder.itemViewType){
+            VIEW_TYPE_ITEM->{
+                var holderr = holder as ImageViewHolder
+                holderr.bind(imgList[position]!!)
+                holderr.itemView.setOnClickListener {
+                    var intent = Intent(mContext,ImageActivity::class.java)
+                    var bundle = Bundle()
+                    bundle.putSerializable(IMG_DATA,imgList[position])
+                    intent.putExtra(IMG_DATA_BUNDLE,bundle)
+                    mContext!!.startActivity(intent)
+                }
+            }
+            VIEW_TYPE_LOADING->{
+
+            }
         }
     }
 
-    private open inner class ReceivedMessageHolder internal constructor(itemView: View) :
-        RecyclerView.ViewHolder(itemView) {
+    private  inner class ImageViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
         internal var iv_thumb: ImageView = itemView.findViewById(R.id.iv_thumb)
 
         internal fun bind(imgData: ImageData) {
             Glide.with(mContext!!)
+                .applyDefaultRequestOptions(RequestOptions().error(mContext!!.resources.getDrawable(R.drawable.placeholder)).
+                    placeholder(mContext!!.resources.getDrawable(R.drawable.placeholder)))
                 .load(imgData.url)
                 .apply(RequestOptions().override(400,400).centerCrop())
                 .into(iv_thumb)
         }
     }
+    private  inner class LoadingViewHodler internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        internal var progress_bar: ProgressBar = itemView.findViewById(R.id.progress_bar_loading)
+    }
 
-    private inner class SentMessageHolder(itemView: View) : ReceivedMessageHolder(itemView)
 }

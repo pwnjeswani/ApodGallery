@@ -14,11 +14,20 @@ import com.pawanjeswani.apodgallery.viewmodel.ApodViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.recyclerview.widget.RecyclerView
+import kotlin.collections.ArrayList
+
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var imageAdapter: ImageThumbsAdapter
     lateinit var apodViewModel: ApodViewModel
+    private var loading = false
+    private var listOfImges = arrayListOf<ImageData?>()
+    var df = SimpleDateFormat("YYYY-MM-dd", Locale.ENGLISH)
+    var pageNo = 1
+    var pageSize = 10
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -27,24 +36,72 @@ class MainActivity : AppCompatActivity() {
         var isConnect = NetworkUtil.isInternetAvailable(this)
         setUpRecyclerview()
         fetchImageList()
+        initScrollListener()
+    }
+    
+    private fun initScrollListener() {
+        rv_images.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val gridLlm = rv_images.layoutManager as GridLayoutManager?
+                if (!loading) {
+                    if (gridLlm != null && gridLlm.findLastCompletelyVisibleItemPosition() == (listOfImges.size-1)) {
+                        //bottom of list hence loading more
+                        loadMore()
+                        loading = true
+                    }
+                }
+            }
+        })
+    }
+
+    private fun loadMore() {
+        listOfImges.add(null)
+        imageAdapter.addImages(listOfImges)
+        imageAdapter.notifyItemInserted(listOfImges.size-1)
+        fetchMoreImages()
+    }
+
+    private fun fetchMoreImages() {
+        var newOldDate = getDaysAgo((10*pageNo) -1 )
+        var newEndDate = getEndDate(newOldDate)
+        var apodRequest = ApodRequest()
+        apodRequest.start_date = df.format(newOldDate)
+        apodRequest.end_date = df.format(newEndDate)
+        apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
+            if (it != null && it.isNotEmpty()) {
+                loading = false
+                listOfImges.removeAt(listOfImges.size-1)
+                imageAdapter.addImages(listOfImges)
+                imageAdapter.notifyItemRemoved(listOfImges.size-1)
+
+                var revestList = it.reversed().filter { it.media_type.equals("image") }
+                listOfImges.addAll(revestList)
+                pageNo++
+                imageAdapter.addImages(listOfImges)
+            }
+        })
+
     }
 
     private fun fetchImageList() {
-        var apodRequest = ApodRequest()
-        var df = SimpleDateFormat("YYYY-MM-dd", Locale.ENGLISH)
         var todayDate = Date()
         todayDate.time = System.currentTimeMillis()
-        var twentyDaysBefore = getDaysAgo(20)
-        apodRequest.start_date = df.format(twentyDaysBefore)
+        var endDate = getDaysAgo(pageSize-1)
+        var apodRequest = ApodRequest()
+        apodRequest.start_date = df.format(endDate)
         apodRequest.end_date = df.format(todayDate)
         apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
             if (it != null && it.isNotEmpty()) {
                 var revestList = it.reversed().filter { it.media_type.equals("image") }
-                saveInDb(revestList)
-                imageAdapter.setImages(revestList as ArrayList<ImageData>)
+                listOfImges = revestList as ArrayList<ImageData?>
+//                saveInDb(revestList)
+                imageAdapter.addImages(listOfImges)
+                pageNo++
             }
         })
     }
+
 
     private fun saveInDb(imgList: List<ImageData>?) {
         var count = 0
@@ -54,7 +111,7 @@ class MainActivity : AppCompatActivity() {
             image.image_id = image.date!!
             mutableList[i] = image
             count++
-//            apodViewModel.saveImage(img, DbQueryListener {
+//            apodViewModel.saveImage(img, DbQueryListener {x6
 //                count++
 //            })
         }
@@ -69,10 +126,18 @@ class MainActivity : AppCompatActivity() {
         rv_images.adapter = imageAdapter
     }
 
-    fun getDaysAgo(daysAgo: Int): Date {
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -daysAgo)
 
+    fun getDaysAgo(daysBefore:Int): Date {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -daysBefore)
         return calendar.time
     }
+
+    fun getEndDate(date: Date): Date {
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.add(Calendar.DAY_OF_YEAR, pageSize-1)
+        return calendar.time
+    }
+
 }
