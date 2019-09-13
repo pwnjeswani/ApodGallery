@@ -23,6 +23,14 @@ class ApodViewModel : ViewModel() {
         }
         return liveData
     }
+    fun getRemoteImage(apodRequest: ApodRequest):LiveData<ImageData>
+    {
+        val liveData = MutableLiveData<ImageData>()
+        with(dataRepository!!){
+            getSingleImage(apodRequest).observeForever(liveData::setValue)
+        }
+        return liveData
+    }
 
     fun saveImage(imageData: ImageData, listener: DbQueryListener)
     {

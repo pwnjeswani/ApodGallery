@@ -16,6 +16,7 @@ import com.pawanjeswani.apodgallery.model.dbTable.ImageData
 import com.pawanjeswani.apodgallery.util.Constans
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA_BUNDLE
+import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATE
 import com.pawanjeswani.apodgallery.view.activity.ImageActivity
 
 
@@ -64,9 +65,7 @@ class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 holderr.bind(imgList[position]!!)
                 holderr.itemView.setOnClickListener {
                     var intent = Intent(mContext,ImageActivity::class.java)
-                    var bundle = Bundle()
-                    bundle.putSerializable(Constans.CURRENT_IMAGE,position)
-                    intent.putExtra(IMG_DATA_BUNDLE,bundle)
+                    intent.putExtra(IMG_DATE,imgList[position]!!.date)
                     mContext!!.startActivity(intent)
                 }
             }

@@ -31,6 +31,22 @@ class DataRepository() {
         return data
     }
 
+    fun getSingleImage(apodRequest: ApodRequest): LiveData<ImageData> {
+        apodRequest.api_key = BuildConfig.API_KEY
+        val data = MutableLiveData<ImageData>()
+        val call = dataService.getSingleImageData(apodRequest.api_key.toString(),apodRequest.start_date.toString())
+        call.enqueue(object : Callback<ImageData> {
+            override fun onResponse(call: Call<ImageData>, response: Response<ImageData>) {
+                data.value = response.body()
+            }
+
+            override fun onFailure(call: Call<ImageData>, t: Throwable) {
+                data.value = null
+            }
+        })
+        return data
+    }
+
     companion object {
         private var dataRepository: DataRepository? = null
 

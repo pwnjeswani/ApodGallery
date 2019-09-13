@@ -4,23 +4,29 @@ import android.os.Bundle
 import android.view.ViewGroup
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.ViewModelProviders
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.ApodRequest
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
-import com.pawanjeswani.apodgallery.util.Constans.Companion.CURRENT_IMAGE
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA
-import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA_BUNDLE
+import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATE
 import com.pawanjeswani.apodgallery.util.Constans.Companion.PageSize
+import com.pawanjeswani.apodgallery.util.ViewPagerPaginate
 import com.pawanjeswani.apodgallery.view.fragment.SingleImageFragment
 import com.pawanjeswani.apodgallery.viewmodel.ApodViewModel
 import kotlinx.android.synthetic.main.activity_image.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ImageActivity : AppCompatActivity() {
+class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
+    ViewPagerPaginate.Callbacks {
 
     var selectedImgPosition = 0
+    private var selectedImgDate = ""
+    private var hasMore = true
+    var page = 1
+    private var loading = false
     lateinit var apodViewModel: ApodViewModel
     lateinit var toolbar: ActionBar
     private var listOfImges = arrayListOf<ImageData?>()
@@ -37,18 +43,41 @@ class ImageActivity : AppCompatActivity() {
         toolbar.setDisplayHomeAsUpEnabled(true)
         toolbar.title = "Here Image name will appear "
         //get which item was clicked
-        var bundle = intent.getBundleExtra(IMG_DATA_BUNDLE)
-        selectedImgPosition = bundle!!.getInt(CURRENT_IMAGE)
-        //fetching list
-        fetchImageList()
+        /*var bundle = intent.getBundleExtra(IMG_DATA_BUNDLE)
+        selectedImgPosition = bundle!!.getInt(CURRENT_IMAGE)*/
 
+        if (intent.hasExtra(IMG_DATE)) {
+            selectedImgDate = intent.getStringExtra(IMG_DATE)
+        }
+        //fetching list
+        /*fetchImageList()*/
+
+        fetchImage()
         //setViewPager
         setUpViewPager()
+    }
+
+    private fun fetchImage() {
+        var apodRequest = ApodRequest()
+        apodRequest.start_date = selectedImgDate
+        apodViewModel.getRemoteImage(apodRequest).observe(this, androidx.lifecycle.Observer {
+            //            if (it != null && it.isNotEmpty()) {
+//                var revestList = it.reversed().filter { it.media_type.equals("image") }
+//                listOfImges = revestList as ArrayList<ImageData?>
+//                addFragments()
+//            }
+//        })
+            if (it != null) {
+                listOfImges.add(it)
+                addFragments()
+            }
+        })
     }
 
     private fun setUpViewPager() {
         viewPagerAdapter = ImageFragmentAdapter(supportFragmentManager)
         vp_images.adapter = viewPagerAdapter
+        ViewPagerPaginate(vp_images, this, this)
     }
 
     private fun fetchImageList() {
@@ -79,6 +108,7 @@ class ImageActivity : AppCompatActivity() {
         vp_images.currentItem = selectedImgPosition
     }
 
+
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
@@ -91,9 +121,7 @@ class ImageActivity : AppCompatActivity() {
     }
 
 
-    inner class ImageFragmentAdapter(fm: androidx.fragment.app.FragmentManager) :
-        androidx.fragment.app.FragmentStatePagerAdapter(fm) {
-
+    inner class ImageFragmentAdapter(fm: androidx.fragment.app.FragmentManager) : FragmentPagerAdapter(fm,BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
         override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
             super.destroyItem(container, position, `object`)
@@ -110,5 +138,25 @@ class ImageActivity : AppCompatActivity() {
         override fun getCount(): Int {
             return mFragmentList.size
         }
+    }
+
+    override fun onLoadMore() {
+
+    }
+
+    override fun isLoading(): Boolean = loading
+
+    override fun hasLoadedAllItems(): Boolean = true
+
+    override fun onPageScrollStateChanged(state: Int) {
+
+    }
+
+    override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+
+    }
+
+    override fun onPageSelected(position: Int) {
+
     }
 }

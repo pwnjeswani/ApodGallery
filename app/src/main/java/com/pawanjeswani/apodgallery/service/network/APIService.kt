@@ -13,4 +13,7 @@ interface APIService {
                     @Query("end_date") end_date:String
                     ): Call<List<ImageData>>
 
+    @GET("apod")
+    fun getSingleImageData(@Query("api_key") api_key:String, @Query("date") date:String): Call<ImageData>
+
 }
