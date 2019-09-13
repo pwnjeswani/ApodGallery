@@ -49,6 +49,14 @@ class LocalDataRepository {
         return appDatabase!!.apodDao.getImageById(image_id)
     }
 
+    fun getNextImages(image_id: String): LiveData<List<ImageData>> {
+        return appDatabase!!.apodDao.getNextImages(image_id)
+    }
+
+    fun getPrevImages(image_id: String): LiveData<List<ImageData>> {
+        return appDatabase!!.apodDao.getPrevImages(image_id)
+    }
+
     companion object {
         private var localDataRepository: LocalDataRepository? = null
 

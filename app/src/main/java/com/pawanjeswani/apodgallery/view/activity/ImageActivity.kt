@@ -76,6 +76,11 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     private fun fetchImage() {
         var apodRequest = ApodRequest()
         apodRequest.start_date = selectedImgDate
+        apodViewModel.getPrevImages(selectedImgDate).observe(this,androidx.lifecycle.Observer {
+            if (it != null && it.isNotEmpty()) {
+                Toast.makeText(this, "prev images list size is ${it.size}", Toast.LENGTH_LONG).show()
+            }
+        })
         if (isConnect) {
             //connectd to network hence fetching data from api service
             apodViewModel.getRemoteImage(apodRequest).observe(this, androidx.lifecycle.Observer {

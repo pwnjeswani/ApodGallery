@@ -55,6 +55,21 @@ class ApodViewModel : ViewModel() {
         return conversation
     }
 
+    fun getNextImages(imageId:String):LiveData<List<ImageData>>{
+        val conversation = MutableLiveData<List<ImageData>>()
+        localDataRepository!!.getNextImages(imageId).observeForever {
+                response-> conversation.value = response
+        }
+        return conversation
+    }
+    fun getPrevImages(imageId:String):LiveData<List<ImageData>>{
+        val conversation = MutableLiveData<List<ImageData>>()
+        localDataRepository!!.getPrevImages(imageId).observeForever {
+                response-> conversation.value = response
+        }
+        return conversation
+    }
+
     fun clearDatabse(){
         localDataRepository!!.clearDb(ImageData())
     }

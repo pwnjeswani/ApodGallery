@@ -39,6 +39,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        init()
+    }
+
+    fun init() {
         imageAdapter = ImageThumbsAdapter(this)
         apodViewModel = ViewModelProviders.of(this).get(ApodViewModel::class.java)
         isConnect = NetworkUtil.isInternetAvailable(this)
@@ -49,12 +53,6 @@ class MainActivity : AppCompatActivity() {
         setUpRecyclerview()
         initScrollListener()
     }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        imageAdapter.notifyDataSetChanged()
-        super.onConfigurationChanged(newConfig)
-    }
-
     private fun setUpRecyclerview() {
         var gridLayoutManager = GridLayoutManager(this, 3)
         rv_images.layoutManager = gridLayoutManager
@@ -165,6 +163,12 @@ class MainActivity : AppCompatActivity() {
             .setDuration(BaseTransientBottomBar.LENGTH_INDEFINITE)
             .show()
     }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        imageAdapter.notifyDataSetChanged()
+        super.onConfigurationChanged(newConfig)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         isConnect = NetworkUtil.isInternetAvailable(this)
         if(!isConnect){
