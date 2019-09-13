@@ -18,6 +18,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.recyclerview.widget.RecyclerView
 import com.pawanjeswani.apodgallery.util.Constans.Companion.PageSize
+import com.pawanjeswani.apodgallery.util.GeneralUtils
+import com.pawanjeswani.apodgallery.util.GeneralUtils.getDaysAgo
+import com.pawanjeswani.apodgallery.util.GeneralUtils.getEndDate
+import com.pawanjeswani.apodgallery.util.GeneralUtils.todayDate
 import kotlin.collections.ArrayList
 
 
@@ -27,7 +31,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var apodViewModel: ApodViewModel
     private var loading = false
     private var listOfImges = arrayListOf<ImageData?>()
-    var df = SimpleDateFormat("YYYY-MM-dd", Locale.ENGLISH)
     var pageNo = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,12 +55,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun fetchInitialImages() {
-        var todayDate = Date()
-        todayDate.time = System.currentTimeMillis()
         var endDate = getDaysAgo(PageSize-1)
         var apodRequest = ApodRequest()
-        apodRequest.start_date = df.format(endDate)
-        apodRequest.end_date = df.format(todayDate)
+        apodRequest.start_date = GeneralUtils.dateFormatter.format(endDate)
+        apodRequest.end_date = GeneralUtils.dateFormatter.format(todayDate)
         apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
             if (it != null && it.isNotEmpty()) {
                 var revestList = it.reversed().filter { it.media_type.equals("image") }
@@ -100,8 +101,8 @@ class MainActivity : AppCompatActivity() {
         var newOldDate = getDaysAgo((10*pageNo) -1 )
         var newEndDate = getEndDate(newOldDate)
         var apodRequest = ApodRequest()
-        apodRequest.start_date = df.format(newOldDate)
-        apodRequest.end_date = df.format(newEndDate)
+        apodRequest.start_date = GeneralUtils.dateFormatter.format(newOldDate)
+        apodRequest.end_date = GeneralUtils.dateFormatter.format(newEndDate)
         apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
             if (it != null && it.isNotEmpty()) {
                 //gotImages success hence removing the loading null item from the list
@@ -137,17 +138,6 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "added $count Elements", Toast.LENGTH_LONG).show()
     }
 
-    fun getDaysAgo(daysBefore:Int): Date {
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -daysBefore)
-        return calendar.time
-    }
 
-    fun getEndDate(date: Date): Date {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-        calendar.add(Calendar.DAY_OF_YEAR, PageSize-1)
-        return calendar.time
-    }
 
 }

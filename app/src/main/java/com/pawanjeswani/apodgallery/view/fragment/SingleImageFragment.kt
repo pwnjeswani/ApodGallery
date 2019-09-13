@@ -98,6 +98,10 @@ class SingleImageFragment : Fragment() {
 
     }
 
+    override fun onPause() {
+        bottomSheetBehavior!!.state = BottomSheetBehavior.STATE_HIDDEN
+        super.onPause()
+    }
     private fun setScrim(slideOffset: Float) {
         window_dim.background.alpha = (slideOffset * 100).toInt()
     }

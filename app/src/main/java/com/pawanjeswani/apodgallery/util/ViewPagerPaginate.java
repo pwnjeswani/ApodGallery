@@ -79,8 +79,6 @@ public class ViewPagerPaginate {
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {
-
-
                 viewPagerCallBacks.onPageScrolled(i,v,i1);
             }
 

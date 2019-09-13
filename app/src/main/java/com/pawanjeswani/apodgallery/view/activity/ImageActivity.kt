@@ -3,16 +3,21 @@ package com.pawanjeswani.apodgallery.view.activity
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.ViewModelProviders
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.ApodRequest
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATE
 import com.pawanjeswani.apodgallery.util.Constans.Companion.PageSize
+import com.pawanjeswani.apodgallery.util.GeneralUtils
+import com.pawanjeswani.apodgallery.util.GeneralUtils.getDaysAgo
+import com.pawanjeswani.apodgallery.util.GeneralUtils.todayDate
 import com.pawanjeswani.apodgallery.util.ViewPagerPaginate
 import com.pawanjeswani.apodgallery.view.fragment.SingleImageFragment
 import com.pawanjeswani.apodgallery.viewmodel.ApodViewModel
@@ -36,7 +41,6 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     lateinit var toolbar: ActionBar
     private var listOfImges = arrayListOf<ImageData?>()
     private var viewPagerAdapter: ImageFragmentAdapter? = null
-    var df = SimpleDateFormat("YYYY-MM-dd", Locale.ENGLISH)
     var mFragmentList = arrayListOf<SingleImageFragment>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,7 +86,8 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
 //            }
 //        })
             if (it != null) {
-                listOfImges.add(it)
+                for(i in 0 until 25)
+                    listOfImges.add(it)
                 addFragments()
             }
         })
@@ -95,12 +100,10 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     }
 
     private fun fetchImageList() {
-        var todayDate = Date()
-        todayDate.time = System.currentTimeMillis()
         var endDate = getDaysAgo(PageSize - 1)
         var apodRequest = ApodRequest()
-        apodRequest.start_date = df.format(endDate)
-        apodRequest.end_date = df.format(todayDate)
+        apodRequest.start_date = GeneralUtils.dateFormatter.format(endDate)
+        apodRequest.end_date = GeneralUtils.dateFormatter.format(todayDate)
         apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
             if (it != null && it.isNotEmpty()) {
                 var revestList = it.reversed().filter { it.media_type.equals("image") }
@@ -128,12 +131,6 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
         return true
     }
 
-    fun getDaysAgo(daysBefore: Int): Date {
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -daysBefore)
-        return calendar.time
-    }
-
 
     inner class ImageFragmentAdapter(fm: androidx.fragment.app.FragmentManager) :
         FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
@@ -156,22 +153,25 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     }
 
     override fun onLoadMore() {
-
+        Toast.makeText(this,"onLoadMore is called",Toast.LENGTH_LONG).show()
     }
 
     override fun isLoading(): Boolean = loading
 
-    override fun hasLoadedAllItems(): Boolean = true
+    override fun hasLoadedAllItems(): Boolean = false
 
     override fun onPageScrollStateChanged(state: Int) {
 
     }
 
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+        var newPosition  = position
+        var oldPosition = newPosition -1
 
     }
 
     override fun onPageSelected(position: Int) {
         currentImagePosition = position
+        Toast.makeText(this,"selected pos $currentImagePosition",Toast.LENGTH_LONG).show()
     }
 }
