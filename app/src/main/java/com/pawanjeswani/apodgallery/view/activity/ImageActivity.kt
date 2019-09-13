@@ -76,11 +76,6 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     private fun fetchImage() {
         var apodRequest = ApodRequest()
         apodRequest.start_date = selectedImgDate
-        apodViewModel.getPrevImages(selectedImgDate).observe(this,androidx.lifecycle.Observer {
-            if (it != null && it.isNotEmpty()) {
-                Toast.makeText(this, "prev images list size is ${it.size}", Toast.LENGTH_LONG).show()
-            }
-        })
         if (isConnect) {
             //connectd to network hence fetching data from api service
             apodViewModel.getRemoteImage(apodRequest).observe(this, androidx.lifecycle.Observer {
@@ -90,10 +85,13 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
 //                addFragments()
 //            }
 //        })
+
                 if (it != null) {
-                    for (i in 0 until 25)
-                        listOfImges.add(it)
-                    addFragments()
+                    //adding the respective date's fragment
+                    listOfImges.add(it)
+                    //checking if next and prev available in DB
+                    addSelectedFragment(it)
+                    checkForOtherImages()
                 }
             })
         } else {
@@ -101,12 +99,42 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
             apodViewModel.fetchImagesImageId(selectedImgDate)
                 .observe(this, androidx.lifecycle.Observer {
                     if (it != null) {
-                        for (i in 0 until 25)
-                            listOfImges.add(it)
+                        listOfImges.add(it)
                         addFragments()
                     }
                 })
         }
+    }
+
+    private fun checkForOtherImages() {
+        insertPreviousDatesImgs(isItToday = listOfImges[0]!!.date == GeneralUtils.dateFormatter.format(todayDate))
+    }
+
+    private fun insertPreviousDatesImgs(isItToday:Boolean) {
+        apodViewModel.getPrevImages(listOfImges[0]!!.date!!).observe(this,androidx.lifecycle.Observer {
+            if(it!=null && it.isNotEmpty()){
+                for(i in 0 until it.size-1){
+                    listOfImges.add(0,it[i])
+                }
+            }
+            if(!isItToday){
+                insertNextDatesImgs()
+            }
+            else{
+                addFragments()
+            }
+        })
+    }
+
+    private fun insertNextDatesImgs() {
+        apodViewModel.getNextImages(listOfImges[0]!!.date!!).observe(this,androidx.lifecycle.Observer {
+            if(it!=null && it.isNotEmpty()){
+                for(i in 0 until it.size-1){
+                    listOfImges.add(it[i])
+                }
+            }
+            addFragments()
+        })
     }
 
     private fun setUpViewPager() {
@@ -115,28 +143,26 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
         ViewPagerPaginate(vp_images, this, this)
     }
 
-    private fun fetchImageList() {
-        var endDate = getDaysAgo(PageSize - 1)
-        var apodRequest = ApodRequest()
-        apodRequest.start_date = GeneralUtils.dateFormatter.format(endDate)
-        apodRequest.end_date = GeneralUtils.dateFormatter.format(todayDate)
-        apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
-            if (it != null && it.isNotEmpty()) {
-                var revestList = it.reversed().filter { it.media_type.equals("image") }
-                listOfImges = revestList as ArrayList<ImageData?>
-                addFragments()
-            }
-        })
-    }
 
     private fun addFragments() {
-        for (img in listOfImges) {
+        listOfImges.removeAt(0)
+        for(img in listOfImges) {
             var imageFrag = SingleImageFragment()
             var bundle = Bundle()
             bundle.putSerializable(IMG_DATA, img)
             imageFrag.arguments = bundle
             mFragmentList.add(imageFrag)
         }
+        viewPagerAdapter!!.notifyDataSetChanged()
+        vp_images.currentItem = selectedImgPosition
+    }
+
+    private fun addSelectedFragment(selectedImgData:ImageData) {
+        var imageFrag = SingleImageFragment()
+        var bundle = Bundle()
+        bundle.putSerializable(IMG_DATA, selectedImgData)
+        imageFrag.arguments = bundle
+        mFragmentList.add(imageFrag)
         viewPagerAdapter!!.notifyDataSetChanged()
         vp_images.currentItem = selectedImgPosition
     }
@@ -184,9 +210,12 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
         var newPosition = position
         var oldPosition = newPosition - 1
 
+
     }
 
     override fun onPageSelected(position: Int) {
         currentImagePosition = position
+        selectedImgDate = listOfImges[currentImagePosition]!!.image_id
+        setImageDate()
     }
 }

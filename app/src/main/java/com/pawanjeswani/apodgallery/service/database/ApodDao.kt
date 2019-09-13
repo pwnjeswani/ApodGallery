@@ -27,9 +27,9 @@ interface ApodDao {
     @Query("SELECT * from ImageData WHERE image_id= :image_id" )
     fun getImageById(image_id:String): LiveData<ImageData>
 
-    @Query("SELECT * from ImageData WHERE image_id > :image_id  ORDER BY image_id DESC")
+    @Query("SELECT * from ImageData WHERE image_id>:image_id  ORDER BY image_id DESC")
     fun getNextImages(image_id: String) : LiveData<List<ImageData>>
 
-    @Query("SELECT * from ImageData WHERE image_id < :image_id ORDER BY image_id DESC")
+    @Query("SELECT * from ImageData WHERE image_id<:image_id ORDER BY image_id ASC")
     fun getPrevImages(image_id: String) : LiveData<List<ImageData>>
 }
