@@ -25,7 +25,11 @@ class SingleImageFragment : Fragment() {
     internal var bottomSheetSlideOffset: Float = 0.toFloat()
     internal var bottomSheetState: Int = 0
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         // Inflate the layout for this fragment
         bundle = arguments
         imgData = bundle!!.getSerializable(IMG_DATA) as ImageData
@@ -72,9 +76,11 @@ class SingleImageFragment : Fragment() {
                 setBottomSheetState(newState)
                 when (newState) {
                     BottomSheetBehavior.STATE_COLLAPSED, BottomSheetBehavior.STATE_HIDDEN ->
-                        window_dim.visibility = View.GONE
+                        if (window_dim != null)
+                            window_dim.visibility = View.GONE
                     BottomSheetBehavior.STATE_DRAGGING, BottomSheetBehavior.STATE_EXPANDED, BottomSheetBehavior.STATE_HALF_EXPANDED ->
-                        window_dim.visibility = View.VISIBLE
+                        if (window_dim != null)
+                            window_dim.visibility = View.VISIBLE
                 }
             }
 
@@ -98,8 +104,10 @@ class SingleImageFragment : Fragment() {
         bottomSheetBehavior!!.state = BottomSheetBehavior.STATE_HIDDEN
         super.onPause()
     }
+
     private fun setScrim(slideOffset: Float) {
-        window_dim.background.alpha = (slideOffset * 100).toInt()
+        if (window_dim != null)
+            window_dim.background.alpha = (slideOffset * 100).toInt()
     }
 
     fun setBottomSheetState(bottomSheetState: Int) {

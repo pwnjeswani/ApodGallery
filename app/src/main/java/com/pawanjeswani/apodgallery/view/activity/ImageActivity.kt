@@ -1,14 +1,12 @@
 package com.pawanjeswani.apodgallery.view.activity
 
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.ViewModelProviders
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.ApodRequest
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
@@ -18,14 +16,12 @@ import com.pawanjeswani.apodgallery.util.Constans.Companion.PageSize
 import com.pawanjeswani.apodgallery.util.GeneralUtils
 import com.pawanjeswani.apodgallery.util.GeneralUtils.getDaysAgo
 import com.pawanjeswani.apodgallery.util.GeneralUtils.todayDate
+import com.pawanjeswani.apodgallery.util.NetworkUtil
 import com.pawanjeswani.apodgallery.util.ViewPagerPaginate
 import com.pawanjeswani.apodgallery.view.fragment.SingleImageFragment
 import com.pawanjeswani.apodgallery.viewmodel.ApodViewModel
 import kotlinx.android.synthetic.main.activity_image.*
-import java.text.SimpleDateFormat
 import java.util.*
-
-
 
 
 class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
@@ -42,12 +38,14 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     private var listOfImges = arrayListOf<ImageData?>()
     private var viewPagerAdapter: ImageFragmentAdapter? = null
     var mFragmentList = arrayListOf<SingleImageFragment>()
+    var isConnect: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.toolbar_app_theme)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image)
         apodViewModel = ViewModelProviders.of(this).get(ApodViewModel::class.java)
+        isConnect = NetworkUtil.isInternetAvailable(this)
         getIntentData()
         setImageDate()
         //get which item was clicked
@@ -78,19 +76,32 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     private fun fetchImage() {
         var apodRequest = ApodRequest()
         apodRequest.start_date = selectedImgDate
-        apodViewModel.getRemoteImage(apodRequest).observe(this, androidx.lifecycle.Observer {
-            //            if (it != null && it.isNotEmpty()) {
+        if (isConnect) {
+            //connectd to network hence fetching data from api service
+            apodViewModel.getRemoteImage(apodRequest).observe(this, androidx.lifecycle.Observer {
+                //            if (it != null && it.isNotEmpty()) {
 //                var revestList = it.reversed().filter { it.media_type.equals("image") }
 //                listOfImges = revestList as ArrayList<ImageData?>
 //                addFragments()
 //            }
 //        })
-            if (it != null) {
-                for(i in 0 until 25)
-                    listOfImges.add(it)
-                addFragments()
-            }
-        })
+                if (it != null) {
+                    for (i in 0 until 25)
+                        listOfImges.add(it)
+                    addFragments()
+                }
+            })
+        } else {
+            //offline hence getting image data from DB
+            apodViewModel.fetchImagesImageId(selectedImgDate)
+                .observe(this, androidx.lifecycle.Observer {
+                    if (it != null) {
+                        for (i in 0 until 25)
+                            listOfImges.add(it)
+                        addFragments()
+                    }
+                })
+        }
     }
 
     private fun setUpViewPager() {
@@ -153,7 +164,7 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     }
 
     override fun onLoadMore() {
-        Toast.makeText(this,"onLoadMore is called",Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "onLoadMore is called", Toast.LENGTH_LONG).show()
     }
 
     override fun isLoading(): Boolean = loading
@@ -165,8 +176,8 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     }
 
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-        var newPosition  = position
-        var oldPosition = newPosition -1
+        var newPosition = position
+        var oldPosition = newPosition - 1
 
     }
 
