@@ -1,14 +1,17 @@
 package com.pawanjeswani.apodgallery.view.activity
 
 import android.os.Bundle
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.ViewModelProviders
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.ApodRequest
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
+import com.pawanjeswani.apodgallery.util.Constans.Companion.EXTRA_BOTTOM_SHEET_SLIDE_OFFSET
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATE
 import com.pawanjeswani.apodgallery.util.Constans.Companion.PageSize
@@ -27,6 +30,7 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     private var hasMore = true
     var page = 1
     private var loading = false
+
     lateinit var apodViewModel: ApodViewModel
     lateinit var toolbar: ActionBar
     private var listOfImges = arrayListOf<ImageData?>()
@@ -39,22 +43,31 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image)
         apodViewModel = ViewModelProviders.of(this).get(ApodViewModel::class.java)
-        toolbar = supportActionBar!!
-        toolbar.setDisplayHomeAsUpEnabled(true)
-        toolbar.title = "Here Image name will appear "
+        getIntentData()
+        setImageDate()
         //get which item was clicked
         /*var bundle = intent.getBundleExtra(IMG_DATA_BUNDLE)
         selectedImgPosition = bundle!!.getInt(CURRENT_IMAGE)*/
 
-        if (intent.hasExtra(IMG_DATE)) {
-            selectedImgDate = intent.getStringExtra(IMG_DATE)
-        }
         //fetching list
         /*fetchImageList()*/
 
         fetchImage()
-        //setViewPager
+
+        //setting ViewPager
         setUpViewPager()
+    }
+
+    private fun getIntentData() {
+        if (intent.hasExtra(IMG_DATE)) {
+            selectedImgDate = intent.getStringExtra(IMG_DATE)
+        }
+    }
+
+    private fun setImageDate() {
+        toolbar = supportActionBar!!
+        toolbar.setDisplayHomeAsUpEnabled(true)
+        toolbar.title = selectedImgDate
     }
 
     private fun fetchImage() {
