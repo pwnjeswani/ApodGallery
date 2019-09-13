@@ -13,19 +13,17 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
+import com.pawanjeswani.apodgallery.util.Constans
+import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA
+import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA_BUNDLE
 import com.pawanjeswani.apodgallery.view.activity.ImageActivity
 
 
 
 class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    companion object{
-        var IMG_DATA  ="img_data"
-        var CURRENT_IMAGE  ="current_image"
-        var IMG_DATA_BUNDLE  ="img_data_bundle"
-        var VIEW_TYPE_ITEM = 1
-        var VIEW_TYPE_LOADING = 0
-    }
+    private var VIEW_TYPE_ITEM = 1
+    private var VIEW_TYPE_LOADING = 0
     private var imgList = mutableListOf<ImageData?>()
     var mContext: Context? = null
 
@@ -45,7 +43,7 @@ class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    fun addImages(imageList: ArrayList<ImageData?>) {
+    fun updateImagesList(imageList: ArrayList<ImageData?>) {
         imgList.clear()
         this.imgList.addAll(imageList)
         notifyDataSetChanged()
@@ -67,7 +65,7 @@ class ImageThumbsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 holderr.itemView.setOnClickListener {
                     var intent = Intent(mContext,ImageActivity::class.java)
                     var bundle = Bundle()
-                    bundle.putSerializable(IMG_DATA,imgList[position])
+                    bundle.putSerializable(Constans.CURRENT_IMAGE,position)
                     intent.putExtra(IMG_DATA_BUNDLE,bundle)
                     mContext!!.startActivity(intent)
                 }
