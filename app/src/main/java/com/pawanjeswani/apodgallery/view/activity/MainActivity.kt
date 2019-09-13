@@ -108,6 +108,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadMore() {
+        isConnect = NetworkUtil.isInternetAvailable(this)
         if (isConnect) {
             loading = true
             listOfImges.add(null)

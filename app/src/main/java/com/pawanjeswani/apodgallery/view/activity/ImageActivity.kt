@@ -76,11 +76,11 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     private fun fetchImage() {
         var apodRequest = ApodRequest()
         apodRequest.start_date = selectedImgDate
-        apodViewModel.getPrevImages(selectedImgDate).observe(this,androidx.lifecycle.Observer {
-            if (it != null && it.isNotEmpty()) {
-                Toast.makeText(this, "prev images list size is ${it.size}", Toast.LENGTH_LONG).show()
-            }
-        })
+//        apodViewModel.getPrevImages(selectedImgDate).observe(this,androidx.lifecycle.Observer {
+//            if (it != null && it.isNotEmpty()) {
+//                Toast.makeText(this, "prev images list size is ${it.size}", Toast.LENGTH_LONG).show()
+//            }
+//        })
         if (isConnect) {
             //connectd to network hence fetching data from api service
             apodViewModel.getRemoteImage(apodRequest).observe(this, androidx.lifecycle.Observer {
@@ -91,8 +91,7 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
 //            }
 //        })
                 if (it != null) {
-                    for (i in 0 until 25)
-                        listOfImges.add(it)
+                    listOfImges.add(it)
                     addFragments()
                 }
             })
@@ -101,8 +100,7 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
             apodViewModel.fetchImagesImageId(selectedImgDate)
                 .observe(this, androidx.lifecycle.Observer {
                     if (it != null) {
-                        for (i in 0 until 25)
-                            listOfImges.add(it)
+                        listOfImges.add(it)
                         addFragments()
                     }
                 })
