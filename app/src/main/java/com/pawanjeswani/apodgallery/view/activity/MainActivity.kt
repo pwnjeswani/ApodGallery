@@ -1,16 +1,22 @@
 package com.pawanjeswani.apodgallery.view.activity
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.provider.Settings
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
 import com.pawanjeswani.apodgallery.R
 import com.pawanjeswani.apodgallery.model.ApodRequest
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
 import com.pawanjeswani.apodgallery.util.Constans.Companion.PageSize
+import com.pawanjeswani.apodgallery.util.Constans.Companion.REQUEST_CODE_INTERNET
 import com.pawanjeswani.apodgallery.util.GeneralUtils
 import com.pawanjeswani.apodgallery.util.GeneralUtils.getDaysAgo
 import com.pawanjeswani.apodgallery.util.GeneralUtils.getEndDate
@@ -36,8 +42,11 @@ class MainActivity : AppCompatActivity() {
         imageAdapter = ImageThumbsAdapter(this)
         apodViewModel = ViewModelProviders.of(this).get(ApodViewModel::class.java)
         isConnect = NetworkUtil.isInternetAvailable(this)
-        setUpRecyclerview()
+        if(!isConnect){
+            showNoNetSnakBar()
+        }
         fetchInitialImages()
+        setUpRecyclerview()
         initScrollListener()
     }
 
@@ -147,5 +156,21 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "added $count Elements", Toast.LENGTH_LONG).show()
     }
 
+    fun showNoNetSnakBar(){
+        Snackbar.make(cl_parent, "You're offline ", Snackbar.LENGTH_SHORT)
+            .setAction("Turn on your internet", View.OnClickListener {
+                startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS),REQUEST_CODE_INTERNET)
+
+            })
+            .setDuration(BaseTransientBottomBar.LENGTH_INDEFINITE)
+            .show()
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        isConnect = NetworkUtil.isInternetAvailable(this)
+        if(!isConnect){
+            showNoNetSnakBar()
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
 
 }
