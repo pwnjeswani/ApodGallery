@@ -5,7 +5,7 @@ import java.util.*
 
 object GeneralUtils {
 
-    var dateFormatter = SimpleDateFormat("YYYY-MM-dd", Locale.ENGLISH)
+    var dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
         internal set
 
     var todayDate = System.currentTimeMillis()
@@ -17,10 +17,16 @@ object GeneralUtils {
         return calendar.time
     }
 
-    fun getEndDate(date: Date): Date {
+    fun getDaysBefore(date: Date,daysBefore: Int): Date {
         val calendar = Calendar.getInstance()
         calendar.time = date
-        calendar.add(Calendar.DAY_OF_YEAR, Constans.PageSize -1)
+        calendar.add(Calendar.DAY_OF_YEAR,-daysBefore)
+        return calendar.time
+    }
+    fun getStartDateFor(date: Date): Date {
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.add(Calendar.DAY_OF_YEAR, -Constans.PageSize -1)
         return calendar.time
     }
 }

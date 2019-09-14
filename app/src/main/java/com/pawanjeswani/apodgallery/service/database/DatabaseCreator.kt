@@ -46,6 +46,7 @@ class DatabaseCreator {
                 val db = Room.databaseBuilder(context.applicationContext,
                         AppDatabase::class.java, AppDatabase.DATABASE_NAME)
                         .fallbackToDestructiveMigration()
+                        .allowMainThreadQueries()
                         .build()
 
                 database = db

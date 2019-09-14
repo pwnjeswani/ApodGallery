@@ -1,5 +1,6 @@
 package com.pawanjeswani.apodgallery.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -38,12 +39,14 @@ class ApodViewModel : ViewModel() {
     }
 
     fun storeMultipleImages(list:List<ImageData>){
+        Log.i("Entry_in_db",list.size.toString())
         localDataRepository!!.insetrtMultiples(list)
     }
     fun getLocalImages():LiveData<List<ImageData>>{
         val conversation = MutableLiveData<List<ImageData>>()
         localDataRepository!!.getAllLocalImages().observeForever {
                 response-> conversation.value = response
+            Log.i("getting_local_db",conversation.value?.size.toString())
         }
         return conversation
     }
@@ -69,6 +72,16 @@ class ApodViewModel : ViewModel() {
         }
         return conversation
     }
+
+    fun getPreviousTenImages(imageId:String):LiveData<List<ImageData>>{
+        val conversation = MutableLiveData<List<ImageData>>()
+        localDataRepository!!.getPreviousTenImages(imageId).observeForever {
+                response-> conversation.value = response
+        }
+        return conversation
+    }
+
+    fun getDbSize():Int = localDataRepository!!.getDbSize()
 
     fun clearDatabse(){
         localDataRepository!!.clearDb(ImageData())

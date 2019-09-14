@@ -7,6 +7,7 @@ import android.provider.Settings
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,13 +20,13 @@ import com.pawanjeswani.apodgallery.util.Constans.Companion.PageSize
 import com.pawanjeswani.apodgallery.util.Constans.Companion.REQUEST_CODE_INTERNET
 import com.pawanjeswani.apodgallery.util.GeneralUtils
 import com.pawanjeswani.apodgallery.util.GeneralUtils.getDaysAgo
-import com.pawanjeswani.apodgallery.util.GeneralUtils.getEndDate
+import com.pawanjeswani.apodgallery.util.GeneralUtils.getDaysBefore
+import com.pawanjeswani.apodgallery.util.GeneralUtils.getStartDateFor
 import com.pawanjeswani.apodgallery.util.GeneralUtils.todayDate
 import com.pawanjeswani.apodgallery.util.NetworkUtil
 import com.pawanjeswani.apodgallery.view.adapter.ImageThumbsAdapter
 import com.pawanjeswani.apodgallery.viewmodel.ApodViewModel
 import kotlinx.android.synthetic.main.activity_main.*
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -54,54 +55,45 @@ class MainActivity : AppCompatActivity() {
         setUpRecyclerview()
         initScrollListener()
     }
+    private fun fetchInitialImages() {
+        if(apodViewModel.getDbSize()>0){
+            //already sotred in DB hence not re-requesting the stored images
+            loadLocalImages()
+        }
+        else{
+            //fresh Database with no entries hence getting initial images
+            var endDate = getDaysAgo(PageSize - 1)
+            var apodRequest = ApodRequest()
+            apodRequest.start_date = GeneralUtils.dateFormatter.format(endDate)
+            if(!gotError){
+                apodRequest.end_date = GeneralUtils.dateFormatter.format(todayDate)
+            }
+            else{
+                apodRequest.end_date = GeneralUtils.dateFormatter.format(getDaysAgo(1))
+            }
+            if (isConnect) {
+                //connected to internet hence fetching initial images from Remote Source
+                apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
+                    if (it != null && it.isNotEmpty()) {
+                        var revestList = it.reversed().filter { it.media_type.equals("image") }
+                        updateList(revestList,true)
+                    }
+                    else{
+                        //got error need to handle
+                        gotError = true
+                        fetchInitialImages()
+                    }
+                })
+            } else {
+                //no internet loading saved images from Database
+                loadLocalImages()
+            }
+        }
+    }
     private fun setUpRecyclerview() {
         var gridLayoutManager = GridLayoutManager(this, 3)
         rv_images.layoutManager = gridLayoutManager
         rv_images.adapter = imageAdapter
-    }
-
-    private fun fetchInitialImages() {
-        var endDate = getDaysAgo(PageSize - 1)
-        var apodRequest = ApodRequest()
-        apodRequest.start_date = GeneralUtils.dateFormatter.format(endDate)
-        if(!gotError){
-            apodRequest.end_date = GeneralUtils.dateFormatter.format(todayDate)
-        }
-        else{
-            apodRequest.end_date = GeneralUtils.dateFormatter.format(getDaysAgo(1))
-        }
-
-        if (isConnect) {
-            //fetching images from Remote Source
-            apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
-                if (it != null && it.isNotEmpty()) {
-                    var revestList = it.reversed().filter { it.media_type.equals("image") }
-                    updateList(revestList)
-                }
-                else{
-                    //got error need to handle
-                    gotError = true
-                    fetchInitialImages()
-                }
-            })
-        } else {
-            //loading saved images from Database
-            apodViewModel.getLocalImages().observe(this, androidx.lifecycle.Observer {
-                if (it != null && it.isNotEmpty()) {
-//                    var revestList = it.reversed().filter { it.media_type.equals("image") }
-                    updateList(it)
-                }
-            })
-        }
-
-    }
-
-    private fun updateList(revestList: List<ImageData>) {
-        listOfImges.addAll(revestList as ArrayList<ImageData?>)
-        if (isConnect)
-            saveInDb(revestList)
-        imageAdapter.updateImagesList(listOfImges)
-        pageNo++
     }
 
     private fun initScrollListener() {
@@ -112,6 +104,7 @@ class MainActivity : AppCompatActivity() {
                 if (!loading) {
                     if (gridLlm != null && gridLlm.findLastCompletelyVisibleItemPosition() == (listOfImges.size - 1)) {
                         //bottom of list hence loading more
+                        pageNo++
                         loadMore()
                     }
                 }
@@ -119,40 +112,22 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun loadMore() {
-        isConnect = NetworkUtil.isInternetAvailable(this)
-        if (isConnect) {
-            loading = true
-            listOfImges.add(null)
-            imageAdapter.updateImagesList(listOfImges)
-            imageAdapter.notifyItemInserted(listOfImges.size - 1)
-            fetchMoreImages()
-        }
-    }
-
-    private fun fetchMoreImages() {
-        var newOldDate = getDaysAgo((10 * pageNo) - 1)
-        var newEndDate = getEndDate(newOldDate)
-        var apodRequest = ApodRequest()
-        apodRequest.start_date = GeneralUtils.dateFormatter.format(newOldDate)
-        apodRequest.end_date = GeneralUtils.dateFormatter.format(newEndDate)
-        apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
+    private fun loadLocalImages() {
+        apodViewModel.getLocalImages().observe(this, Observer {
             if (it != null && it.isNotEmpty()) {
-                //gotImages success hence removing the loading null item from the list
-                gotImages()
-                var revestList = it.reversed().filter { it.media_type.equals("image") }
-                updateList(revestList)
+                updateList(it,false)
             }
         })
     }
 
-    private fun gotImages() {
-        loading = false
-        listOfImges.removeAt(listOfImges.size - 1)
+    private fun updateList(revestList: List<ImageData>,neededToStore: Boolean) {
+        listOfImges.addAll(revestList as ArrayList<ImageData?>)
+        if (neededToStore)
+            saveInDb(revestList)
+        gotImages()
         imageAdapter.updateImagesList(listOfImges)
-        imageAdapter.notifyItemRemoved(listOfImges.size - 1)
+        pageNo++
     }
-
 
     private fun saveInDb(imgList: List<ImageData>?) {
         var count = 0
@@ -166,6 +141,43 @@ class MainActivity : AppCompatActivity() {
         apodViewModel.storeMultipleImages(mutableList)
 //        Toast.makeText(this, "added $count Elements", Toast.LENGTH_LONG).show()
     }
+
+
+    private fun loadMore() {
+        isConnect = NetworkUtil.isInternetAvailable(this)
+        if (isConnect) {
+            loading = true
+//            listOfImges.add(null)
+            imageAdapter.addToList()
+            fetchMoreImages()
+        }
+    }
+
+    private fun fetchMoreImages() {
+        var strinugdate = listOfImges[listOfImges.size-2]!!.date!!
+        var nextEndDate =  GeneralUtils.dateFormatter.parse(strinugdate)
+        nextEndDate = getDaysBefore(nextEndDate,1)
+        var nextStartDate = getStartDateFor(nextEndDate)
+        var apodRequest = ApodRequest()
+        apodRequest.start_date = GeneralUtils.dateFormatter.format(nextStartDate)
+        apodRequest.end_date = GeneralUtils.dateFormatter.format(nextEndDate)
+        apodViewModel.getRemoteImages(apodRequest).observe(this, androidx.lifecycle.Observer {
+            if (it != null && it.isNotEmpty()) {
+                //gotImages success hence removing the loading null item from the list
+//                gotImages()
+                var revestList = it.reversed().filter { it.media_type.equals("image") }
+                updateList(revestList,true)
+            }
+        })
+    }
+
+    private fun gotImages() {
+        loading = false
+//        listOfImges.removeAt(listOfImges.size - 1)
+        imageAdapter.removedLoad()
+//        imageAdapter.notifyItemRemoved(listOfImges.size - 1)
+    }
+
 
     fun showNoNetSnakBar(){
         Snackbar.make(cl_parent, "You're offline ", Snackbar.LENGTH_SHORT)

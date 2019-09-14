@@ -27,7 +27,7 @@ class LocalDataRepository {
         handler.post(runnable)
     }
 
-    fun insetrtMultiples(imgList:List<ImageData>){
+    fun insetrtMultiples(imgList: List<ImageData>) {
         val mHandlerThread = HandlerThread("Handler")
         mHandlerThread.start()
         val handler = Handler(mHandlerThread.looper)
@@ -55,6 +55,14 @@ class LocalDataRepository {
 
     fun getPrevImages(image_id: String): LiveData<List<ImageData>> {
         return appDatabase!!.apodDao.getPrevImages(image_id)
+    }
+
+    fun getPreviousTenImages(image_id: String): LiveData<List<ImageData>> {
+        return appDatabase!!.apodDao.getPreviousTenImages(image_id)
+    }
+
+    fun getDbSize():Int {
+        return appDatabase!!.apodDao.getSizeOfDb()
     }
 
     companion object {
