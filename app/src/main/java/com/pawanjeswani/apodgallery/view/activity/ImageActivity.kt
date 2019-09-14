@@ -12,16 +12,13 @@ import com.pawanjeswani.apodgallery.model.ApodRequest
 import com.pawanjeswani.apodgallery.model.dbTable.ImageData
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATA
 import com.pawanjeswani.apodgallery.util.Constans.Companion.IMG_DATE
-import com.pawanjeswani.apodgallery.util.Constans.Companion.PageSize
 import com.pawanjeswani.apodgallery.util.GeneralUtils
-import com.pawanjeswani.apodgallery.util.GeneralUtils.getDaysAgo
 import com.pawanjeswani.apodgallery.util.GeneralUtils.todayDate
 import com.pawanjeswani.apodgallery.util.NetworkUtil
 import com.pawanjeswani.apodgallery.util.ViewPagerPaginate
 import com.pawanjeswani.apodgallery.view.fragment.SingleImageFragment
 import com.pawanjeswani.apodgallery.viewmodel.ApodViewModel
 import kotlinx.android.synthetic.main.activity_image.*
-import java.util.*
 
 
 class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
@@ -33,6 +30,7 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     var page = 1
     private var loading = false
     private var currentImagePosition = 0
+    private var lastPosition = 0
     lateinit var apodViewModel: ApodViewModel
     lateinit var toolbar: ActionBar
     private var listOfImges = arrayListOf<ImageData?>()
@@ -85,12 +83,11 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
 //                addFragments()
 //            }
 //        })
-
                 if (it != null) {
                     //adding the respective date's fragment
-                    listOfImges.add(it)
+//                    listOfImges.add(it)
+//                    addSelectedFragment(it)
                     //checking if next and prev available in DB
-                    addSelectedFragment(it)
                     checkForOtherImages()
                 }
             })
@@ -100,21 +97,22 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
                 .observe(this, androidx.lifecycle.Observer {
                     if (it != null) {
                         listOfImges.add(it)
-                        addFragments()
+                        addSelectedFragment(it)
+                        checkForOtherImages()
                     }
                 })
         }
     }
 
     private fun checkForOtherImages() {
-        insertPreviousDatesImgs(isItToday = listOfImges[0]!!.date == GeneralUtils.dateFormatter.format(todayDate))
+        insertPreviousDatesImgs(isItToday = selectedImgDate== GeneralUtils.dateFormatter.format(todayDate))
     }
 
     private fun insertPreviousDatesImgs(isItToday:Boolean) {
-        apodViewModel.getPrevImages(listOfImges[0]!!.date!!).observe(this,androidx.lifecycle.Observer {
+        apodViewModel.getPrevImages(selectedImgDate).observe(this,androidx.lifecycle.Observer {
             if(it!=null && it.isNotEmpty()){
                 for(i in 0 until it.size-1){
-                    listOfImges.add(0,it[i])
+                    listOfImges.add(it[i])
                 }
             }
             if(!isItToday){
@@ -127,10 +125,10 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     }
 
     private fun insertNextDatesImgs() {
-        apodViewModel.getNextImages(listOfImges[0]!!.date!!).observe(this,androidx.lifecycle.Observer {
+        apodViewModel.getNextImages(selectedImgDate).observe(this,androidx.lifecycle.Observer {
             if(it!=null && it.isNotEmpty()){
                 for(i in 0 until it.size-1){
-                    listOfImges.add(it[i])
+                    listOfImges.add(0,it[i])
                 }
             }
             addFragments()
@@ -145,7 +143,9 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
 
 
     private fun addFragments() {
-        listOfImges.removeAt(0)
+//        listOfImges.add(0, listOfImges[listOfImges.size-1])
+//        listOfImges.removeAt(listOfImges.size-1)
+//        listOfImges.removeAt(0)
         for(img in listOfImges) {
             var imageFrag = SingleImageFragment()
             var bundle = Bundle()
@@ -174,14 +174,10 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     }
 
 
-    inner class ImageFragmentAdapter(fm: androidx.fragment.app.FragmentManager) :
-        FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
-
-        override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
-            super.destroyItem(container, position, `object`)
-        }
+    inner class ImageFragmentAdapter(fm: androidx.fragment.app.FragmentManager) : FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
         override fun getItem(position: Int): androidx.fragment.app.Fragment {
+
             var fragment = androidx.fragment.app.Fragment()
             if (mFragmentList.size >= position) {
                 fragment = mFragmentList.get(position)
@@ -192,9 +188,14 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
         override fun getCount(): Int {
             return mFragmentList.size
         }
+
+        override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
+            super.destroyItem(container, position, `object`)
+        }
     }
 
     override fun onLoadMore() {
+        //it will be called when the selected image is 2 images after the current selected
         Toast.makeText(this, "onLoadMore is called", Toast.LENGTH_LONG).show()
     }
 
@@ -203,17 +204,20 @@ class ImageActivity : AppCompatActivity(), ViewPagerPaginate.ViewPagerCallBacks,
     override fun hasLoadedAllItems(): Boolean = false
 
     override fun onPageScrollStateChanged(state: Int) {
-
     }
 
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
         var newPosition = position
         var oldPosition = newPosition - 1
-
-
     }
 
     override fun onPageSelected(position: Int) {
+        if (lastPosition > position) {
+            Toast.makeText(this, "R to L called", Toast.LENGTH_LONG).show()
+        }else if (lastPosition < position) {
+            Toast.makeText(this, "L to R called", Toast.LENGTH_LONG).show()
+        }
+        lastPosition = position;
         currentImagePosition = position
         selectedImgDate = listOfImges[currentImagePosition]!!.image_id
         setImageDate()

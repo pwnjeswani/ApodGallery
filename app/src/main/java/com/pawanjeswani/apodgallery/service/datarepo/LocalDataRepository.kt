@@ -12,7 +12,7 @@ import com.pawanjeswani.apodgallery.service.database.interfaces.DbQueryListener
 class LocalDataRepository {
     private var appDatabase: AppDatabase? = null
 
-    private constructor() {
+    init {
         appDatabase = DatabaseCreator.getInstance()!!.database
     }
 
